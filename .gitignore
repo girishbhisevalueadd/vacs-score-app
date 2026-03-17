@@ -1,0 +1,33 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+vacsenv/
+venv/
+env/
+
+# Streamlit
+.streamlit/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Model files
+models/
+*.pkl
+*.joblib
+*.h5
+
+# Large datasets
+*.csv
+*.xlsx
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
