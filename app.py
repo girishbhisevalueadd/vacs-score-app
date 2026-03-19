@@ -90,6 +90,12 @@ st.markdown(
         padding: 1.5rem 2rem;
         margin-bottom: 1rem;
     }
+    .result-company {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e3a5f;
+        margin-bottom: 0.5rem;
+    }
     .result-label {
         font-size: 0.85rem;
         font-weight: 700;
@@ -409,9 +415,7 @@ def plot_model_comparison(summary: dict, best_model: str):
     bars1 = ax.bar(x - width / 2, test_accs, width,
                    label="Test Accuracy", color="#2563a8", alpha=0.85, zorder=3)
     bars2 = ax.bar(x + width / 2, cv_means, width,
-                   label=f"CV Mean ({5}-fold)", color="#60a5fa", alpha=0.85, zorder=3,
-                   yerr=cv_stds, capsize=3,
-                   error_kw={"color": "#64748b", "linewidth": 1.2})
+                   label=f"CV Mean ({5}-fold)", color="#60a5fa", alpha=0.85, zorder=3)
 
     # Highlight best model
     if best_model in names:
@@ -625,13 +629,11 @@ def main():
 
     # ── KPI bar ───────────────────────────────────────────────────────────────
     st.markdown("---")
-    k1, k2, k3, k4, k5 = st.columns(5)
+    k1, k2, k3 = st.columns(3)
     k1.metric("Active Model",   selected_model_name)
-    k2.metric("Test Accuracy",  f"{active_stats.get('test_accuracy', 0) * 100:.1f}%")
-    k3.metric("CV Mean",        f"{active_stats.get('cv_mean', 0) * 100:.1f}%")
     roc = active_stats.get("roc_auc")
-    k4.metric("ROC-AUC",        f"{roc:.4f}" if roc else "N/A")
-    k5.metric("Rating Classes", len(summary_data["rating_labels"]))
+    k2.metric("ROC-AUC",        f"{roc:.4f}" if roc else "N/A")
+    k3.metric("Rating Classes", len(summary_data["rating_labels"]))
 
     st.markdown("---")
 
@@ -651,6 +653,12 @@ def main():
         )
 
         with st.form("prediction_form"):
+            company_name = st.text_input(
+                "Company Name",
+                placeholder="e.g. Apple Inc.",
+                max_chars=100,
+                help="Enter the company name for your records (optional).",
+            )
             inputs    = build_input_form()
             submitted = st.form_submit_button(
                 "Predict Credit Rating",
@@ -698,18 +706,20 @@ def main():
             col_left, col_right = st.columns([1, 1])
 
             with col_left:
-                st.markdown(
-                    f"""
-                    <div class="result-card">
-                        <div class="result-label">Predicted Credit Rating</div>
-                        {rating_badge(pred_rating)}
-                        <div class="confidence-text">
-                            Model Confidence: <span class="confidence-value">{confidence:.1f}%</span>
-                        </div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
+                company_html = (
+                    f'<div class="result-company">{company_name.strip()}</div>'
+                    if company_name.strip() else ""
                 )
+                result_html = (
+                    '<div class="result-card">'
+                    + company_html
+                    + '<div class="result-label">Predicted Credit Rating</div>'
+                    + rating_badge(pred_rating)
+                    + f'<div class="confidence-text">Model Confidence: '
+                    f'<span class="confidence-value">{confidence:.1f}%</span></div>'
+                    + '</div>'
+                )
+                st.markdown(result_html, unsafe_allow_html=True)
                 if pred_rating in INVESTMENT_GRADES:
                     st.success("Investment Grade  —  Low credit risk")
                 elif pred_rating in SPECULATIVE_GRADES:
